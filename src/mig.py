@@ -272,7 +272,7 @@ class mig:
         with open('fromto_{0}-{1}.json'.format(stable, htable), 'w') as out:
             out.write(content)
 
-    def mig(self, cfg_file, test):
+    def mig(self, cfg_file, mandt):
         try:
             with open(cfg_file, 'r') as fin:
                 content = fin.read()
@@ -349,7 +349,10 @@ class mig:
                 if cfg['FromTo'][c].get('IsBlob', False):
                     ivalues.append(pyhdb.NClob(row[i]))
                 else:
-                    ivalues.append(row[i])
+                    if c == 'MANDT' and mandt:
+                        ivalues.append(mandt)
+                    else:
+                        ivalues.append(row[i])
                 i+=1
 
             toInsert.append(ivalues)
@@ -383,7 +386,7 @@ def main():
     if args.Option == 'FROMTO' and args.origin and args.destination:
         m.makecopyscript(args.origin,args.destination)
     elif args.Option == 'EXECUTE' and args.script:
-        m.mig(args.script, False)
+        m.mig(args.script, args.force_mandt)
 
     #m = mig()
     #m.makecopyscript("ZTBFI_FOLLOW_COB","ZTFI00038")
@@ -411,6 +414,10 @@ def parser():
                         action="store", dest="script",
                         default= None,
                         help= "Script file path")
+    parser.add_argument('-f', '--force',
+                        action="store", dest="force_mandt",
+                        default= None,
+                        help= "Force mandant number")
 
     args = parser.parse_args()
     return args
