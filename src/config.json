@@ -1,0 +1,18 @@
+{
+    "orig": {
+        "User": "WEBSERVER",
+        "Pwd": "124PST56",
+        "Server": "ecc-qa",
+        "Database": "ECQ",
+        "Schema": "ecq"
+    },
+    "dest":{
+        "UserSystemPrivileges": "SYSTEM",
+        "PwdSystemPrivileges": "Ha12345678",
+        "User": "SAPABAP1",
+        "Pwd": "f4GNb3xN",
+        "Server": "hana-es.focustextil.loc.br",
+        "Port": 31041,
+        "Schema": "SAPABAP1"
+    }
+}
