@@ -1,5 +1,5 @@
 # MIG SQL 2 HANA
-Tool for Z table migration SqlServer to Hana Database.
+Tool for Z table migration from SqlServer to Hana Database.
 This tool makes and runs a customizable ETL script to data copy from a Microsoft SQL source table to a SAP Hana destination tables.
 
 ## Configuration file
