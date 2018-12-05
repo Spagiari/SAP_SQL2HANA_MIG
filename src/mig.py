@@ -144,21 +144,21 @@ class mig:
         hns = [value for value in hcol if value not in scol]
         return snh, hns
 
-    def wrongtype(c):
+    def wrongtype(self, c):
             return "Wrong types destiny "\
                     "{0}({1}), origin" \
                     "{2}({3})".format(self.dColumnMetaData[c]['Type'],
                                       self.dColumnMetaData[c]['Length'],
                                       self.oColumnMetaData[c]['Type'],
                                       self.oColumnMetaData[c]['Length'])
-    def wronglengthstr(c):
+    def wronglengthstr(self, c):
             return "Wrong lenth destiny "\
                     "{0}({1}), origin" \
                     "{2}({3})".format(self.dColumnMetaData[c]['Type'],
                                       self.dColumnMetaData[c]['Length'],
                                       self.oColumnMetaData[c]['Type'],
                                       self.oColumnMetaData[c]['Length'])
-    def wronglengthnum(c):
+    def wronglengthnum(self, c):
             return "Wrong lenth possible data lost destiny "\
                     "{0}({1},{2}), origin" \
                     "{3}({4},{5})".format(self.dColumnMetaData[c]['Type'],
