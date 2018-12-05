@@ -194,8 +194,30 @@ class mig:
         else:
             print("-- OPS! ATENÇÃO algumas colunas precisam ser verificadas")
             snh, hns = self.getDiferences(ocol, hcol)
-            script['Observations'].append("VERIFIQUE no ECC: {0}".format(snh))
-            script['Observations'].append("VERIFIQUE no HANA: {0}".format(hns))
+            snhf = list()
+            hnsf = list()
+
+            for s in snh:
+                snhf.append("{0} {1}({2}{3}{4})".format(s,
+                                                    self.oColumnMetaData[s]['Type'],
+                                                    self.oColumnMetaData[s]['Length'],
+                                                    ', ' if 'Scale' in
+                                                        self.oColumnMetaData[s]
+                                                        else '',
+                                                    self.oColumnMetaData[s].get('Scale',
+                                                                               '')))
+            for h in hns:
+                hnsf.append("{0} {1}({2}{3}{4})".format(h,
+                                                    self.dColumnMetaData[h]['Type'],
+                                                    self.dColumnMetaData[h]['Length'],
+                                                    ', ' if 'Scale' in
+                                                        self.dColumnMetaData[h]
+                                                        else '',
+                                                    self.dColumnMetaData[h].get('Scale',
+                                                                               '')))
+
+            script['Observations'].append("VERIFIQUE no ECC: {0}".format(snhf))
+            script['Observations'].append("VERIFIQUE no HANA: {0}".format(hnsf))
             script['Ready'] = False
 
         if len(icol) == 0:
