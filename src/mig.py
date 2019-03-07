@@ -1,7 +1,10 @@
+import asyncio
 import pyodbc as db
 import pyhdb
 import json
 import argparse
+from concurrent.futures import ProcessPoolExecutor
+from async import *
 
 SQLCharTypes = ['CHAR', 'CHAR', 'NCHAR', 'NVARCHAR', 'NTEXT', 'BINARY',
                 'VARBINARY', 'VARBINARY']
@@ -294,7 +297,9 @@ class mig:
         with open('fromto_{0}-{1}.json'.format(stable, htable), 'w') as out:
             out.write(content)
 
-    def mig(self, cfg_file, mandt):
+
+    async def mig(self, cfg_file, mandt):
+        futures = list()
         try:
             with open(cfg_file, 'r') as fin:
                 content = fin.read()
@@ -350,19 +355,12 @@ class mig:
         #print (hqry)
         #print (qry)
 
-        hconn = pyhdb.connect(
-            host=self.dest['Server'],
-            port=self.dest['Port'],
-            user=self.dest['User'],
-            password=self.dest['Pwd'])
-
-        hcur = hconn.cursor()
-
         cur = self.con.cursor()
         cur.execute(qry)
         row = cur.fetchone() #Fetch first row
         toInsert = list()
         affrows = 0
+        futures
 
         while row:
             ivalues = []
@@ -380,35 +378,41 @@ class mig:
             toInsert.append(ivalues)
             row = cur.fetchone()
 
-            if (len(toInsert) == 10000):
-                hcur.executemany(hqry, toInsert)
+            if (len(toInsert) == 100000):
+                # hcur.executemany(hqry, toInsert)
+                # hcur = hconn.cursor()
+                futures.append(send_to_hana(self.dest ,hqry, toInsert))
+                await asyncio.sleep(0)
                 affrows += len(toInsert)
                 print('Pushed {0} rows!'.format(affrows))
                 toInsert = list()
 
         if (len(toInsert) > 0):
-            hcur.executemany(hqry, toInsert)
+            # hcur.executemany(hqry, toInsert)
+            # hcur = hconn.cursor()
+            futures.append(send_to_hana(self.dest, hqry, toInsert))
+            await asyncio.sleep(0)
             affrows += len(toInsert)
             print('Pushed {0} rows!'.format(affrows))
             toInsert = list()
 
+        await asyncio.gather(*futures)
         print('Commiting')
-        hconn.commit()
+        # hconn.commit()
         print('Done!')
         print('Sucess')
         cur.close()
-        hcur.close()
-        hconn.close()
+        # hconn.close()
 
-
-def main():
+@force_sync
+async def main():
     args = parser()
     m = mig()
 
     if args.Option == 'FROMTO' and args.origin and args.destination:
         m.makecopyscript(args.origin,args.destination)
     elif args.Option == 'EXECUTE' and args.script:
-        m.mig(args.script, args.force_mandt)
+        await m.mig(args.script, args.force_mandt)
 
     #m = mig()
     #m.makecopyscript("ZTBFI_FOLLOW_COB","ZTFI00038")
@@ -443,6 +447,25 @@ def parser():
 
     args = parser.parse_args()
     return args
+
+pool = ProcessPoolExecutor(max_workers=32)
+def do(dest, hqry, toInsert):
+    print('Inserting to hana...')
+    hconn = pyhdb.connect(
+        host=dest['Server'],
+        port=dest['Port'],
+        user=dest['User'],
+        password=dest['Pwd'])
+    hcur = hconn.cursor()
+    hcur.executemany(hqry, toInsert)
+    print('Commiting Chunck...')
+    hconn.commit()
+    hcur.close()
+    hconn.close()
+
+def send_to_hana(dest, hqry, toInsert):
+    future = pool.submit(do, dest, hqry, toInsert)
+    return asyncio.wrap_future(future)
 
 if __name__ == "__main__":
     main()
